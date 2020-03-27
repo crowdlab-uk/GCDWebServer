@@ -50,26 +50,26 @@
 
 #define kBonjourResolutionTimeout 5.0
 
-NSString* const GCDWebServerOption_Port = @"Port";
-NSString* const GCDWebServerOption_BonjourName = @"BonjourName";
-NSString* const GCDWebServerOption_BonjourType = @"BonjourType";
-NSString* const GCDWebServerOption_RequestNATPortMapping = @"RequestNATPortMapping";
-NSString* const GCDWebServerOption_BindToLocalhost = @"BindToLocalhost";
-NSString* const GCDWebServerOption_MaxPendingConnections = @"MaxPendingConnections";
-NSString* const GCDWebServerOption_ServerName = @"ServerName";
-NSString* const GCDWebServerOption_AuthenticationMethod = @"AuthenticationMethod";
-NSString* const GCDWebServerOption_AuthenticationRealm = @"AuthenticationRealm";
-NSString* const GCDWebServerOption_AuthenticationAccounts = @"AuthenticationAccounts";
-NSString* const GCDWebServerOption_ConnectionClass = @"ConnectionClass";
-NSString* const GCDWebServerOption_AutomaticallyMapHEADToGET = @"AutomaticallyMapHEADToGET";
-NSString* const GCDWebServerOption_ConnectedStateCoalescingInterval = @"ConnectedStateCoalescingInterval";
-NSString* const GCDWebServerOption_DispatchQueuePriority = @"DispatchQueuePriority";
+NSString *const GCDWebServerOption_Port = @"Port";
+NSString *const GCDWebServerOption_BonjourName = @"BonjourName";
+NSString *const GCDWebServerOption_BonjourType = @"BonjourType";
+NSString *const GCDWebServerOption_RequestNATPortMapping = @"RequestNATPortMapping";
+NSString *const GCDWebServerOption_BindToLocalhost = @"BindToLocalhost";
+NSString *const GCDWebServerOption_MaxPendingConnections = @"MaxPendingConnections";
+NSString *const GCDWebServerOption_ServerName = @"ServerName";
+NSString *const GCDWebServerOption_AuthenticationMethod = @"AuthenticationMethod";
+NSString *const GCDWebServerOption_AuthenticationRealm = @"AuthenticationRealm";
+NSString *const GCDWebServerOption_AuthenticationAccounts = @"AuthenticationAccounts";
+NSString *const GCDWebServerOption_ConnectionClass = @"ConnectionClass";
+NSString *const GCDWebServerOption_AutomaticallyMapHEADToGET = @"AutomaticallyMapHEADToGET";
+NSString *const GCDWebServerOption_ConnectedStateCoalescingInterval = @"ConnectedStateCoalescingInterval";
+NSString *const GCDWebServerOption_DispatchQueuePriority = @"DispatchQueuePriority";
 #if TARGET_OS_IPHONE
-NSString* const GCDWebServerOption_AutomaticallySuspendInBackground = @"AutomaticallySuspendInBackground";
+NSString *const GCDWebServerOption_AutomaticallySuspendInBackground = @"AutomaticallySuspendInBackground";
 #endif
 
-NSString* const GCDWebServerAuthenticationMethod_Basic = @"Basic";
-NSString* const GCDWebServerAuthenticationMethod_DigestAccess = @"DigestAccess";
+NSString *const GCDWebServerAuthenticationMethod_Basic = @"Basic";
+NSString *const GCDWebServerAuthenticationMethod_DigestAccess = @"DigestAccess";
 
 #if defined(__GCDWEBSERVER_LOGGING_FACILITY_BUILTIN__)
 #if DEBUG
@@ -96,7 +96,7 @@ void GCDWebServerLogMessage(GCDWebServerLoggingLevel level, NSString* format, ..
   if (_builtInLoggerBlock || enableLogging) {
     va_list arguments;
     va_start(arguments, format);
-    NSString* message = [[NSString alloc] initWithFormat:format arguments:arguments];
+    NSString *message = [[NSString alloc] initWithFormat:format arguments:arguments];
     va_end(arguments);
     if (_builtInLoggerBlock) {
       _builtInLoggerBlock(level, message);
@@ -193,11 +193,6 @@ static void _ExecuteMainThreadRunLoopSources() {
 }
 
 - (void)dealloc {
-  GWS_DCHECK(_connected == NO);
-  GWS_DCHECK(_activeConnections == 0);
-  GWS_DCHECK(_options == nil);  // The server can never be dealloc'ed while running because of the retain-cycle with the dispatch source
-  GWS_DCHECK(_disconnectTimer == NULL);  // The server can never be dealloc'ed while the disconnect timer is pending because of the retain-cycle
-
 #if !OS_OBJECT_USE_OBJC_RETAIN_RELEASE
   dispatch_release(_sourceGroup);
   dispatch_release(_syncQueue);
@@ -336,23 +331,20 @@ static void _ExecuteMainThreadRunLoopSources() {
 }
 
 - (void)addHandlerWithMatchBlock:(GCDWebServerMatchBlock)matchBlock asyncProcessBlock:(GCDWebServerAsyncProcessBlock)processBlock {
-  GWS_DCHECK(_options == nil);
   GCDWebServerHandler* handler = [[GCDWebServerHandler alloc] initWithMatchBlock:matchBlock asyncProcessBlock:processBlock];
   [_handlers insertObject:handler atIndex:0];
 }
 
 - (void)removeAllHandlers {
-  GWS_DCHECK(_options == nil);
   [_handlers removeAllObjects];
 }
 
 static void _NetServiceRegisterCallBack(CFNetServiceRef service, CFStreamError* error, void* info) {
-  GWS_DCHECK([NSThread isMainThread]);
   @autoreleasepool {
     if (error->error) {
       GWS_LOG_ERROR(@"Bonjour registration error %i (domain %i)", (int)error->error, (int)error->domain);
     } else {
-      GCDWebServer* server = (__bridge GCDWebServer*)info;
+      GCDWebServer *server = (__bridge GCDWebServer*)info;
       GWS_LOG_VERBOSE(@"Bonjour registration complete for %@", [server class]);
       if (!CFNetServiceResolveWithTimeout(server->_resolutionService, kBonjourResolutionTimeout, NULL)) {
         GWS_LOG_ERROR(@"Failed starting Bonjour resolution");
@@ -370,7 +362,7 @@ static void _NetServiceResolveCallBack(CFNetServiceRef service, CFStreamError* e
         GWS_LOG_ERROR(@"Bonjour resolution error %i (domain %i)", (int)error->error, (int)error->domain);
       }
     } else {
-      GCDWebServer* server = (__bridge GCDWebServer*)info;
+      GCDWebServer *server = (__bridge GCDWebServer*)info;
       GWS_LOG_INFO(@"%@ now locally reachable at %@", [server class], server.bonjourServerURL);
       if ([server.delegate respondsToSelector:@selector(webServerDidCompleteBonjourRegistration:)]) {
         [server.delegate webServerDidCompleteBonjourRegistration:server];
@@ -749,8 +741,6 @@ static inline NSString* _EncodeBase64(NSString* string) {
     }
 #endif
     return YES;
-  } else {
-    GWS_DNOT_REACHED();
   }
   return NO;
 }
